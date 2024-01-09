@@ -1,22 +1,40 @@
 import { Schema, InferSchemaType, model } from 'mongoose'
 
 
-const notesSchema = new Schema({
+const noteSchema = new Schema({
+    content: { type: String, required: true },
+    created_at: { type: Date, required: true }
+}, { _id: false })
+
+export const groupColorOptions = ["#B38BFA", "#FF79F2", "#43E6FC", "#F19576", "#0047FF", "#6691FF"] as const
+
+const groupSchema = new Schema({
     owner: {
         type: Schema.Types.ObjectId,
-        ref: 'users',
+        ref: 'user',
         required: true,
     },
 
-    notes: [{
-        content: { type: String, required: true },
-        created_at: { type: String, required: true }
-    }],
+    groupName: {
+        type: String,
+        required: true
+    },
 
-    test: { type: String }
+    groupColor: {
+        type: String,
+        enum: groupColorOptions,
+        required: true
+    },
+
+    notes: [noteSchema]
 })
 
-export type INotesSchema = InferSchemaType<typeof notesSchema>
+type IGroupSchema = InferSchemaType<typeof groupSchema>
 
+type INoteSchema = InferSchemaType<typeof noteSchema>
 
-export const Notes = model('note', notesSchema);
+export interface INotesSchema extends Omit<IGroupSchema, "notes"> {
+    notes: INoteSchema[]
+}
+
+export const Notes = model('note', groupSchema);

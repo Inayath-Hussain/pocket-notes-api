@@ -34,5 +34,11 @@ export const mongodbForTests = async () => {
         await mongodb.stop()
     }
 
-    return { connectToTestDB, disconnectTestDB }
+
+    const clearTestDB = async () => {
+        await mongodb.cleanup();
+    }
+
+
+    return { connectToTestDB, disconnectTestDB, clearTestDB }
 }

@@ -1,11 +1,9 @@
-import { signedCookie } from 'cookie-parser';
 import requestTool from 'supertest';
-import { decode, verify } from 'jsonwebtoken'
 import { userRouter } from './user';
 import { errorHandler } from '../errorHandler';
-import { env } from '../env';
 import { mongodbForTests } from '../db.test.config';
 import { getExpressAppForTest } from '../index.test.config';
+import { containsValidAccessTokenCookie } from './users.test.utils';
 
 beforeAll(async () => {
     const { connectToTestDB } = await mongodbForTests()
@@ -33,7 +31,7 @@ describe('"/user" route', () => {
 
         describe('request body validation', () => {
 
-            test('if request body with missing fields is sent then 400 is response', (done) => {
+            test('if required fields are missing then 400 is response', (done) => {
                 agent.post('/user/signup')
                     .type('json')
                     .send({})
@@ -66,7 +64,13 @@ describe('"/user" route', () => {
                     .type('json')
                     .send({ username: 'T', email: 'test@domain.com', password: '123' })
                     .expect(201)
-                    .expect({ message: 'success' }, done)
+                    .expect({ message: 'success' })
+                    .then(response => {
+
+                        const email = containsValidAccessTokenCookie(response)
+                        expect(email).toBe("test@domain.com")
+                        done()
+                    })
             })
         })
 
@@ -141,31 +145,10 @@ describe('"/user" route', () => {
                 .expect({ message: 'success' })
                 .then(response => {
 
-                    const accessTokenPattern = /accessToken=(.*?);/
-
-                    const matches = accessTokenPattern.exec(response.headers['set-cookie'][0])
-
-                    if (matches === null) {
-                        throw Error('accessToken value is missing');
-                    }
-
-                    const signedAccessToken = matches[1]
-
-                    const accessToken = signedCookie(decodeURIComponent(signedAccessToken), env.COOKIE_PARSER_SECRET)
-
-                    if (!accessToken) {
-                        throw Error('cannot retrieve token from signed cookie')
-                    }
-
-                    const isValid = verify(accessToken, env.JWT_SECRET)
-
-                    if (!isValid) {
-                        throw Error("accessToken cookie isn't valid")
-                    }
-
-                    expect(decode(accessToken)).toMatchObject({ email: 'test@domain.com' })
-
+                    const email = containsValidAccessTokenCookie(response)
+                    expect(email).toBe("test@domain.com")
                     done()
+
                 })
         })
     })

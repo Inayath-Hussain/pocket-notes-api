@@ -1,9 +1,10 @@
 import { RequestHandler } from "express";
 import { compare } from 'bcrypt'
-import { sign } from 'jsonwebtoken'
+// import { sign } from 'jsonwebtoken'
 import { User } from "../models/user";
 import { Ierror } from "../errorHandler";
-import { env } from "../env";
+// import { env } from "../env";
+import { createAccessToken } from "../utilities/createAccessToken";
 // import { signedCookie } from "cookie-parser";
 
 
@@ -28,13 +29,8 @@ export const loginController: RequestHandler<{}, {}, ILoginBody> = async (req, r
         return next({ status: 400, message: 'email and password donot match' })
     }
     else {
-        // data in access token
-        const payload = { email }
-
         // generate access token
-        const accessToken = sign(payload, env.JWT_SECRET, { expiresIn: '1d', mutatePayload: false })
-
-        console.log(accessToken)
+        const accessToken = createAccessToken(email)
 
         // setting response cookies
         res.cookie('accessToken', accessToken, { expires: new Date(Date.now() + 24 * 60 * 60 * 1000), signed: true })

@@ -8,7 +8,6 @@ export function getExpressAppForTest() {
     const app = express()
 
     // middlewares
-    console.log(env.COOKIE_PARSER_SECRET)
     app.use(cookieParser(env.COOKIE_PARSER_SECRET))
     app.use(express.json())
 

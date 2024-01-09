@@ -1,3 +1,4 @@
+import cors from "cors";
 import express from 'express';
 import morgan from 'morgan';
 import Debug from 'debug';
@@ -6,6 +7,7 @@ import { env } from './env';
 import { connectToMongoDB } from './db';
 import { errorHandler } from './errorHandler';
 import { userRouter } from './routes/user';
+import { notesRouter } from './routes/notes';
 
 const debug = Debug('pocket-notes:server')
 
@@ -14,6 +16,7 @@ const PORT = env.PORT
 
 
 // middlewares
+app.use(cors())
 app.use(cookieParser(env.COOKIE_PARSER_SECRET));
 app.use(morgan('dev'));
 
@@ -23,6 +26,7 @@ app.use(express.urlencoded({ extended: false }))  // identify and parse req.body
 
 // routes
 app.use('/user', userRouter)
+app.use('/notes', notesRouter)
 
 
 // error handler

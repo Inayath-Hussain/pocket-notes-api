@@ -3,6 +3,7 @@ import z from "zod";
 import { hash, genSalt } from 'bcrypt'
 import { User } from "../models/user";
 import { Ierror } from "../errorHandler";
+import { createAccessToken } from "../utilities/createAccessToken";
 
 
 export const signupBodySchema = z.object({
@@ -31,6 +32,11 @@ export const signUpController: RequestHandler<{}, {}, ISignupBody> = async (req,
     const newUser = new User({ email, username, password })
 
     await newUser.save()
+
+    const accessToken = createAccessToken(email)
+
+    // setting response cookies
+    res.cookie('accessToken', accessToken, { expires: new Date(Date.now() + 24 * 60 * 60 * 1000), signed: true })
 
     return res.status(201).json({ message: 'success' })
 }
